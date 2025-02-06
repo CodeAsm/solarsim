@@ -8,7 +8,7 @@ class Simulation {
 public:
     void update(double G);
     void addBody(const Body& body);
-    const std::vector<Body>& getBodies() const; // Add this method
+    const std::vector<Body>& getBodies() const;
 
 private:
     void updateAcceleration(Body& body1, Body& body2, double G);

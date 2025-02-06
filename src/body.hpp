@@ -1,13 +1,19 @@
 #ifndef BODY_HPP
 #define BODY_HPP
 
-#include <glm/glm.hpp>
+#include <string>
+#include <array>
 
-struct Body {
-    double mass;
-    glm::dvec3 position;
-    glm::dvec3 velocity;
-    glm::dvec3 acceleration;
+struct Vector3D {
+    double x, y, z;
 };
 
-#endif
+struct Body {
+    std::string name;
+    double mass;
+    Vector3D position;
+    Vector3D velocity;
+    Vector3D acceleration;
+};
+
+#endif // BODY_HPP

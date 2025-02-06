@@ -5,8 +5,13 @@
 
 class Renderer {
 public:
-    void init();
-    void draw(const Simulation& sim);
+    void init(Simulation& sim);
+    void draw();
+    void renderImGui();
+    void shutdown();
+
+private:
+    Simulation* simulation;
 };
 
-#endif
+#endif // RENDERER_HPP

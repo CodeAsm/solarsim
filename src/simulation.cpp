@@ -15,9 +15,9 @@ void Simulation::update(double G) {
 
     // Leapfrog integration
     for (auto& body : bodies) {
-        body.velocity += body.acceleration * timeStep * 0.5;
-        body.position += body.velocity * timeStep;
-        body.velocity += body.acceleration * timeStep * 0.5;
+       // body.velocity += body.acceleration * timeStep * 0.5;
+       // body.position += body.velocity * timeStep;
+       // body.velocity += body.acceleration * timeStep * 0.5;
     }
 }
 
