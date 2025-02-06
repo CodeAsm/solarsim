@@ -6,10 +6,15 @@
 
 class Simulation {
 public:
-    std::vector<Body> bodies;
-    double timeStep = 100; // Versnelling instelbaar
-
     void update(double G);
+    void addBody(const Body& body);
+    const std::vector<Body>& getBodies() const; // Add this method
+
+private:
+    void updateAcceleration(Body& body1, Body& body2, double G);
+
+    std::vector<Body> bodies;
+    double timeStep;
 };
 
-#endif
+#endif // SIMULATION_HPP
