@@ -28,8 +28,8 @@ private:
     float cameraY = 0.0f;
     float cameraZ = 50.0f;
 
-    int windowWidth = 640;  // Window dimensions
-    int windowHeight = 480;
+    int windowWidth = 1280; //640;  // Window dimensions
+    int windowHeight = 720; //480;
 };
 
 #endif // RENDERER_HPP

@@ -13,6 +13,8 @@
 // Callback function for framebuffer size changes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
+    Renderer* renderer = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
+    renderer->setupMatrices(width, height);
 }
 
 void Renderer::init(Simulation& sim) {
@@ -32,16 +34,15 @@ void Renderer::init(Simulation& sim) {
         return;
     }
 
-    // Make the window's context current
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetWindowUserPointer(window, this);
 
-    // Initialize GLAD
+    // Initialize OpenGL loader (if needed)
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        // GLAD initialization failed
-        std::cerr << "Failed to initialize GLAD" << std::endl;
+        std::cerr << "Failed to initialize OpenGL context" << std::endl;
         return;
     }
-
     // Set viewport
     glViewport(0, 0, windowWidth, windowHeight);  // Set the viewport size to fill the window
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -53,9 +54,13 @@ void Renderer::init(Simulation& sim) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsDark();
+     // Set clear color
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 130");
+    ImGui_ImplOpenGL3_Init("#version 330");
+
+    // Set up initial matrices
+    setupMatrices(windowWidth, windowHeight);
 
     // Main render loop
     mainLoop();
