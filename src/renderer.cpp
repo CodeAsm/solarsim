@@ -7,6 +7,8 @@
 #include "renderer.hpp"
 #include "simulation.hpp"
 #include <iostream>
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 // Callback function for framebuffer size changes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -23,7 +25,7 @@ void Renderer::init(Simulation& sim) {
     }
 
     // Create a windowed mode window and its OpenGL context
-    window = glfwCreateWindow(640, 480, "SolarSim", NULL, NULL);
+    window = glfwCreateWindow(windowWidth, windowHeight, "SolarSim", NULL, NULL);
     if (!window) {
         glfwTerminate();
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -41,7 +43,7 @@ void Renderer::init(Simulation& sim) {
     }
 
     // Set viewport
-    glViewport(0, 0, 640, 480);
+    glViewport(0, 0, windowWidth, windowHeight);  // Set the viewport size to fill the window
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Set clear color
@@ -56,30 +58,50 @@ void Renderer::init(Simulation& sim) {
     ImGui_ImplOpenGL3_Init("#version 130");
 
     // Main render loop
-    while (!glfwWindowShouldClose(window) && running) {
-        // Input
-        glfwPollEvents();
-
-        // Render
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        draw();
-
-        // Render ImGui
-        renderImGui();
-
-        // Swap buffers
-        glfwSwapBuffers(window);
-    }
+    mainLoop();
 
     // Cleanup
     shutdown();
 }
 
+void Renderer::setupMatrices(int width, int height) {
+    glViewport(0, 0, width, height);
+
+    // Projection matrix
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0, (double)width / (double)height, 0.1, 1000.0);
+
+    // Model-view matrix
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(
+        cameraX, cameraY, cameraZ,  // camera position
+        0.0, 0.0, 0.0,              // look at origin
+        0.0, 1.0, 0.0               // up vector
+    );
+}
+
 void Renderer::draw() {
+    // Update matrices with current camera settings
+    setupMatrices(windowWidth, windowHeight);
+
+    // Draw the bodies
+    glColor3f(1.0f, 1.0f, 1.0f); // Set color to white for points
     glBegin(GL_POINTS);
     for (const auto& body : simulation->getBodies()) {
         glVertex3d(body.position.x, body.position.y, body.position.z);
     }
+    glEnd();
+
+    // Draw a simple triangle for demonstration
+    glBegin(GL_TRIANGLES);
+    glColor3f(1.0f, 0.0f, 0.0f); // Red
+    glVertex3f(-0.5f, -0.5f, 0.0f);
+    glColor3f(0.0f, 1.0f, 0.0f); // Green
+    glVertex3f(0.5f, -0.5f, 0.0f);
+    glColor3f(0.0f, 0.0f, 1.0f); // Blue
+    glVertex3f(0.0f, 0.5f, 0.0f);
     glEnd();
 }
 
@@ -88,12 +110,13 @@ void Renderer::renderImGui() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("Debug Menu");
-    ImGui::Text("Bodies:");
+    // Display body information
+    ImGui::Begin("Bodies");
     for (const auto& body : simulation->getBodies()) {
         ImGui::Text("Name: %s, Mass: %f, Position: (%f, %f, %f)", body.name.c_str(), body.mass, body.position.x, body.position.y, body.position.z);
     }
 
+    // Simulation controls
     if (ImGui::Button("Step Forward")) {
         simulation->update(timeStep);
     }
@@ -115,6 +138,13 @@ void Renderer::renderImGui() {
     }
     ImGui::End();
 
+    // Camera controls
+    ImGui::Begin("Camera Controls");
+    ImGui::SliderFloat("Camera X", &cameraX, -100.0f, 100.0f);
+    ImGui::SliderFloat("Camera Y", &cameraY, -100.0f, 100.0f);
+    ImGui::SliderFloat("Camera Z", &cameraZ, 1.0f, 200.0f);
+    ImGui::End();
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
@@ -128,4 +158,23 @@ void Renderer::shutdown() {
 
 bool Renderer::shouldClose() const {
     return glfwWindowShouldClose(window);
+}
+
+void Renderer::mainLoop() {
+    while (!shouldClose()) {
+        // Poll for and process events
+        glfwPollEvents();
+
+        // Clear the screen
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Render the scene
+        draw();
+
+        // Render ImGui
+        renderImGui();
+
+        // Swap buffers to display the rendered image
+        glfwSwapBuffers(window);
+    }
 }

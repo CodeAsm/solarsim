@@ -33,10 +33,8 @@ int main() {
     Renderer renderer;
     renderer.init(sim);
 
-    while (!renderer.shouldClose() && running) {
-        renderer.draw();
-        glfwPollEvents();
-    }
+    renderer.draw(); // Render the simulation (it has its own render loop)
+
 
     renderer.shutdown();
     return 0;
