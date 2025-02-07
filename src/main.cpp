@@ -33,7 +33,8 @@ int main() {
     Renderer renderer;
     renderer.init(sim);
 
-    renderer.draw(); // Render the simulation (it has its own render loop)
+    renderer.mainLoop(); // Start the main loop
+   //old renderer.draw(); // Render the simulation (it has its own render loop)
 
 
     renderer.shutdown();

@@ -62,11 +62,11 @@ void Renderer::init(Simulation& sim) {
     // Set up initial matrices
     setupMatrices(windowWidth, windowHeight);
 
-    // Main render loop
-    mainLoop();
+    // Main render loop We do this in the main.cpp now.
+   // mainLoop();
 
     // Cleanup
-    shutdown();
+   // shutdown();
 }
 
 void Renderer::setupMatrices(int width, int height) {
