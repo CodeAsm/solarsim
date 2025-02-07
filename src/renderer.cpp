@@ -1,10 +1,11 @@
-#include "renderer.hpp"
-#include "simulation.hpp"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <glad/glad.h> // Include glad to get all the required OpenGL headers
+#include <GLFW/glfw3.h> // Include GLFW for window management. CoPilot leave these in this order.
 #include "imgui.h"
 #include "../external/imgui/backends/imgui_impl_glfw.h"
 #include "../external/imgui/backends/imgui_impl_opengl3.h"
+#include "globals.hpp"
+#include "renderer.hpp"
+#include "simulation.hpp"
 #include <iostream>
 
 // Callback function for framebuffer size changes
@@ -22,7 +23,7 @@ void Renderer::init(Simulation& sim) {
     }
 
     // Create a windowed mode window and its OpenGL context
-    GLFWwindow* window = glfwCreateWindow(640, 480, "SolarSim", NULL, NULL);
+    window = glfwCreateWindow(640, 480, "SolarSim", NULL, NULL);
     if (!window) {
         glfwTerminate();
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -55,7 +56,7 @@ void Renderer::init(Simulation& sim) {
     ImGui_ImplOpenGL3_Init("#version 130");
 
     // Main render loop
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window) && running) {
         // Input
         glfwPollEvents();
 
@@ -92,6 +93,26 @@ void Renderer::renderImGui() {
     for (const auto& body : simulation->getBodies()) {
         ImGui::Text("Name: %s, Mass: %f, Position: (%f, %f, %f)", body.name.c_str(), body.mass, body.position.x, body.position.y, body.position.z);
     }
+
+    if (ImGui::Button("Step Forward")) {
+        simulation->update(timeStep);
+    }
+    if (ImGui::Button("Step Backward")) {
+        simulation->update(-timeStep);
+    }
+    if (ImGui::Button("Reset")) {
+        // Reset the simulation to the initial state
+        *simulation = Simulation();
+        simulation->addBody({"Sun", 1.989e30, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
+        simulation->addBody({"Earth", 5.972e24, {1.5e11, 0, 0}, {0, 29780, 0}, {0, 0, 0}});
+        simulation->addBody({"Moon", 7.348e22, {3.8e8, 0, 0}, {0, 1023, 0}, {0, 0, 0}});
+        simulation->addBody({"Mars", 6.39e23, {2.07e11, 0, 0}, {0, 24130, 0}, {0, 0, 0}});
+        simulation->addBody({"Jupiter", 1.898e27, {7.41e11, 0, 0}, {0, 13070, 0}, {0, 0, 0}});
+        simulation->addBody({"Saturn", 5.683e26, {1.35e12, 0, 0}, {0, 9670, 0}, {0, 0, 0}});
+        simulation->addBody({"Uranus", 8.681e25, {2.74e12, 0, 0}, {0, 6810, 0}, {0, 0, 0}});
+        simulation->addBody({"Neptune", 1.024e26, {4.45e12, 0, 0}, {0, 5430, 0}, {0, 0, 0}});
+        simulation->addBody({"Pluto", 1.309e22, {4.44e12, 0, 0}, {0, 6110, 0}, {0, 0, 0}});
+    }
     ImGui::End();
 
     ImGui::Render();
@@ -103,4 +124,8 @@ void Renderer::shutdown() {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
     glfwTerminate();
+}
+
+bool Renderer::shouldClose() const {
+    return glfwWindowShouldClose(window);
 }

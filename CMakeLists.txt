@@ -12,6 +12,7 @@ set(SOURCES
     src/main.cpp
     src/renderer.cpp
     src/simulation.cpp
+    src/body.cpp # Add this line
     # Add other source files here
 )
 
@@ -31,7 +32,7 @@ target_include_directories(imgui PUBLIC ${IMGUI_DIR})
 
 # Set OpenGL preference to GLVND
 cmake_policy(SET CMP0072 NEW)
-set(OpenGL_GL_PREFERENCE GLVND)
+#set(OpenGL_GL_PREFERENCE GLVND)
 
 # Find and include GLFW using pkg-config
 find_package(PkgConfig REQUIRED)
