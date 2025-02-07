@@ -40,6 +40,12 @@ const std::vector<Body>& Simulation::getBodies() const {
     return bodies;
 }
 
+// Implement the removeBody method to remove a body from the simulation
+void Simulation::removeBody(size_t index) {
+    if (index < bodies.size()) {
+        bodies.erase(bodies.begin() + index);
+    }
+}
 void Simulation::updateAcceleration(Body& body1, Body& body2, double G) {
     double dx = body2.position.x - body1.position.x;
     double dy = body2.position.y - body1.position.y;

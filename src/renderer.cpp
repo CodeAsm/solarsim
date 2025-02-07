@@ -100,14 +100,16 @@ void Renderer::draw() {
     glEnd();
 
     // Draw a simple triangle for demonstration
-    glBegin(GL_TRIANGLES);
-    glColor3f(1.0f, 0.0f, 0.0f); // Red
-    glVertex3f(-0.5f, -0.5f, 0.0f);
-    glColor3f(0.0f, 1.0f, 0.0f); // Green
-    glVertex3f(0.5f, -0.5f, 0.0f);
-    glColor3f(0.0f, 0.0f, 1.0f); // Blue
-    glVertex3f(0.0f, 0.5f, 0.0f);
-    glEnd();
+    if (showTriangle) {
+        glBegin(GL_TRIANGLES);
+        glColor3f(1.0f, 0.0f, 0.0f); // Red
+        glVertex3f(-0.5f, -0.5f, 0.0f);
+        glColor3f(0.0f, 1.0f, 0.0f); // Green
+        glVertex3f(0.5f, -0.5f, 0.0f);
+        glColor3f(0.0f, 0.0f, 1.0f); // Blue
+        glVertex3f(0.0f, 0.5f, 0.0f);
+        glEnd();
+    }
 }
 
 void Renderer::renderImGui() {
@@ -117,8 +119,12 @@ void Renderer::renderImGui() {
 
     // Display body information
     ImGui::Begin("Bodies");
-    for (const auto& body : simulation->getBodies()) {
+     for (size_t i = 0; i < simulation->getBodies().size(); ++i) {
+        const auto& body = simulation->getBodies()[i];
         ImGui::Text("Name: %s, Mass: %f, Position: (%f, %f, %f)", body.name.c_str(), body.mass, body.position.x, body.position.y, body.position.z);
+        if (ImGui::Button(("Delete " + body.name).c_str())) {
+            simulation->removeBody(i);
+        }
     }
 
     // Simulation controls
@@ -131,15 +137,9 @@ void Renderer::renderImGui() {
     if (ImGui::Button("Reset")) {
         // Reset the simulation to the initial state
         *simulation = Simulation();
-        simulation->addBody({"Sun", 1.989e30, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}});
-        simulation->addBody({"Earth", 5.972e24, {1.5e11, 0, 0}, {0, 29780, 0}, {0, 0, 0}});
-        simulation->addBody({"Moon", 7.348e22, {3.8e8, 0, 0}, {0, 1023, 0}, {0, 0, 0}});
-        simulation->addBody({"Mars", 6.39e23, {2.07e11, 0, 0}, {0, 24130, 0}, {0, 0, 0}});
-        simulation->addBody({"Jupiter", 1.898e27, {7.41e11, 0, 0}, {0, 13070, 0}, {0, 0, 0}});
-        simulation->addBody({"Saturn", 5.683e26, {1.35e12, 0, 0}, {0, 9670, 0}, {0, 0, 0}});
-        simulation->addBody({"Uranus", 8.681e25, {2.74e12, 0, 0}, {0, 6810, 0}, {0, 0, 0}});
-        simulation->addBody({"Neptune", 1.024e26, {4.45e12, 0, 0}, {0, 5430, 0}, {0, 0, 0}});
-        simulation->addBody({"Pluto", 1.309e22, {4.44e12, 0, 0}, {0, 6110, 0}, {0, 0, 0}});
+        for (const auto& body : knownBodies) {
+            simulation->addBody({body.name, body.mass, body.position, body.velocity, body.acceleration});
+        }
     }
     ImGui::End();
 
@@ -148,6 +148,20 @@ void Renderer::renderImGui() {
     ImGui::SliderFloat("Camera X", &cameraX, -100.0f, 100.0f);
     ImGui::SliderFloat("Camera Y", &cameraY, -100.0f, 100.0f);
     ImGui::SliderFloat("Camera Z", &cameraZ, 1.0f, 200.0f);
+    ImGui::End();
+
+    // Triangle visibility control
+    ImGui::Begin("Triangle Control");
+    ImGui::Checkbox("Show Triangle", &showTriangle);
+    ImGui::End();
+
+    // Add body control
+    ImGui::Begin("Add Body");
+    for (const auto& body : knownBodies) {
+        if (ImGui::Button(("Add " + body.name).c_str())) {
+            simulation->addBody({body.name, body.mass, body.position, body.velocity, body.acceleration});
+        }
+    }
     ImGui::End();
 
     ImGui::Render();
@@ -183,3 +197,4 @@ void Renderer::mainLoop() {
         glfwSwapBuffers(window);
     }
 }
+
