@@ -2,10 +2,7 @@
 #define BODY_HPP
 
 #include <string>
-
-struct Vector3D {
-    double x, y, z;
-};
+#include "globals.hpp"
 
 class Body {
 public:

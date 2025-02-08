@@ -5,4 +5,9 @@
 
 extern std::atomic<bool> running;
 
+struct Vector3D {
+    double x, y, z;
+};
+
+
 #endif // GLOBALS_HPP
