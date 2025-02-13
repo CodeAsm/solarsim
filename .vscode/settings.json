@@ -1,6 +1,19 @@
 {
     "files.associations": {
         "iostream": "cpp",
-        "csignal": "cpp"
+        "csignal": "cpp",
+        "__node_handle": "cpp",
+        "*.ipp": "cpp",
+        "*.tcc": "cpp",
+        "unordered_map": "cpp",
+        "fstream": "cpp",
+        "istream": "cpp",
+        "numeric": "cpp",
+        "ostream": "cpp",
+        "sstream": "cpp",
+        "algorithm": "cpp",
+        "concepts": "cpp",
+        "ios": "cpp",
+        "locale": "cpp"
     }
 }
