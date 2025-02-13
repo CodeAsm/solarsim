@@ -117,12 +117,14 @@ void Renderer::moveCamera(double distance, double speed) {
     cameraPosition.z += cameraDirection.z * distance * speed;
 }
 
-void Renderer::draw() {
+void Renderer::draw(Simulation& sim) {
+
+    simulation = &sim;
     // Update matrices with current camera settings
     setupMatrices(windowWidth, windowHeight);
 
     // Calculate the maximum angle required to see all bodies
-    double maxAngle = 0.0;
+    double maxAngle = 0.1;
     /*for (const auto& body : simulation->getBodies()) {
         Vector3D directionToBody = {body.position.x - cameraPosition.x, body.position.y - cameraPosition.y, body.position.z - cameraPosition.z};
         double angle = calculateAngle(cameraDirection, directionToBody);
@@ -137,9 +139,9 @@ void Renderer::draw() {
     // Draw the bodies
     glColor3f(1.0f, 1.0f, 1.0f); // Set color to white for points
     glBegin(GL_POINTS); 
-    //for (const auto& body : simulation->getBodies()) {
-    //    glVertex3d(body.position.x, body.position.y, body.position.z);
-    //}
+    for (const auto& body : simulation->getBodies()) {
+        glVertex3d(body.position.x, body.position.y, body.position.z);
+    }
     glEnd();
 
     // Draw a simple triangle for demonstration
@@ -161,7 +163,7 @@ void Renderer::renderImGui(Simulation& sim) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     simulation = &sim;
-    
+
     // Display body information
     ImGui::Begin("Bodies");
     if (simulation->getBodies().size() > 0) {
@@ -247,7 +249,7 @@ void Renderer::mainLoop(Simulation& sim) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render the scene
-        draw();
+        draw(sim);
 
         // Render ImGui
         renderImGui(sim);

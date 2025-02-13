@@ -21,7 +21,6 @@ public:
     void renderImGui(Simulation& sim);
     void shutdown();
     bool shouldClose() const;
-    void mainLoop();
     void mainLoop(Simulation& sim);
     double calculateAngle(Vector3D v1, Vector3D v2);
 
@@ -63,7 +62,7 @@ private:
 
     void rotateCamera(double angle, double speed);
     void moveCamera(double distance, double speed);
-    void draw();
+    void draw(Simulation& sim);
 };
 
 #endif // RENDERER_HPP
