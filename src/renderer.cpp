@@ -9,6 +9,9 @@
 #include <iostream>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <cmath>
+#include <vector>
+
 
 // Callback function for framebuffer size changes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -17,8 +20,15 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     renderer->setupMatrices(width, height);
 }
 
+Renderer::Renderer() {
+   
+}
+
 void Renderer::init(Simulation& sim) {
-    simulation = &sim;
+    cameraDirection = {0.0, 0.0, -1.0}; // Example initialization
+    cameraPosition = {0.0, 0.0, 50.0}; // Initialize camera position
+
+    //simulation = &sim;
 
     if (!glfwInit()) {
         // Initialization failed
@@ -75,28 +85,61 @@ void Renderer::setupMatrices(int width, int height) {
     // Projection matrix
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, (double)width / (double)height, 0.1, 1000.0);
+    gluPerspective(45.0, (double)width / (double)height, 0.1, 10e9);
 
     // Model-view matrix
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(
-        cameraX, cameraY, cameraZ,  // camera position
+        cameraPosition.x, cameraPosition.y, cameraPosition.z,  // camera position
         0.0, 0.0, 0.0,              // look at origin
         0.0, 1.0, 0.0               // up vector
     );
+}
+
+double Renderer::calculateAngle(Vector3D v1, Vector3D v2) {
+    double dotProduct = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+    double magnitude1 = std::sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
+    double magnitude2 = std::sqrt(v2.x * v2.x + v2.y * v2.y + v2.z * v2.z);
+    return std::acos(dotProduct / (magnitude1 * magnitude2));
+}
+
+void Renderer::rotateCamera(double angle, double speed) {
+    // Implement camera rotation logic here
+    // This is a placeholder implementation
+    cameraDirection.x = cameraDirection.x * std::cos(angle * speed) - cameraDirection.z * std::sin(angle * speed);
+    cameraDirection.z = cameraDirection.x * std::sin(angle * speed) + cameraDirection.z * std::cos(angle * speed);
+}
+
+void Renderer::moveCamera(double distance, double speed) {
+    cameraPosition.x += cameraDirection.x * distance * speed;
+    cameraPosition.y += cameraDirection.y * distance * speed;
+    cameraPosition.z += cameraDirection.z * distance * speed;
 }
 
 void Renderer::draw() {
     // Update matrices with current camera settings
     setupMatrices(windowWidth, windowHeight);
 
+    // Calculate the maximum angle required to see all bodies
+    double maxAngle = 0.0;
+    /*for (const auto& body : simulation->getBodies()) {
+        Vector3D directionToBody = {body.position.x - cameraPosition.x, body.position.y - cameraPosition.y, body.position.z - cameraPosition.z};
+        double angle = calculateAngle(cameraDirection, directionToBody);
+        if (angle > maxAngle) {
+            maxAngle = angle;
+        }
+    }*/
+
+    // Rotate the camera to see all bodies
+    //rotateCamera(maxAngle, 0.1); // Rotate at a speed of 0.1
+
     // Draw the bodies
     glColor3f(1.0f, 1.0f, 1.0f); // Set color to white for points
-    glBegin(GL_POINTS);
-    for (const auto& body : simulation->getBodies()) {
-        glVertex3d(body.position.x, body.position.y, body.position.z);
-    }
+    glBegin(GL_POINTS); 
+    //for (const auto& body : simulation->getBodies()) {
+    //    glVertex3d(body.position.x, body.position.y, body.position.z);
+    //}
     glEnd();
 
     // Draw a simple triangle for demonstration
@@ -110,20 +153,24 @@ void Renderer::draw() {
         glVertex3f(0.0f, 0.5f, 0.0f);
         glEnd();
     }
+
 }
 
-void Renderer::renderImGui() {
+void Renderer::renderImGui(Simulation& sim) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
+    simulation = &sim;
+    
     // Display body information
     ImGui::Begin("Bodies");
-     for (size_t i = 0; i < simulation->getBodies().size(); ++i) {
-        const auto& body = simulation->getBodies()[i];
-        ImGui::Text("Name: %s, Mass: %f, Position: (%f, %f, %f)", body.name.c_str(), body.mass, body.position.x, body.position.y, body.position.z);
-        if (ImGui::Button(("Delete " + body.name).c_str())) {
-            simulation->removeBody(i);
+    if (simulation->getBodies().size() > 0) {
+        for (size_t i = 0; i < simulation->getBodies().size(); ++i) {
+            const auto& body = simulation->getBodies()[i];
+            ImGui::Text("Name: %s, Mass: %f, Position: (%f, %f, %f)", body.name.c_str(), body.mass, body.position.x, body.position.y, body.position.z);
+            if (ImGui::Button(("Delete " + body.name).c_str())) {
+                simulation->removeBody(i);
+            }
         }
     }
 
@@ -145,9 +192,21 @@ void Renderer::renderImGui() {
 
     // Camera controls
     ImGui::Begin("Camera Controls");
-    ImGui::SliderFloat("Camera X", &cameraX, -100.0f, 100.0f);
-    ImGui::SliderFloat("Camera Y", &cameraY, -100.0f, 100.0f);
-    ImGui::SliderFloat("Camera Z", &cameraZ, 1.0f, 200.0f);
+    
+    // ImGui slider for camera position
+    float cameraPosX = static_cast<float>(cameraPosition.x);
+    float cameraPosY = static_cast<float>(cameraPosition.y);
+    float cameraPosZ = static_cast<float>(cameraPosition.z);
+
+    if (ImGui::SliderFloat("Camera X", &cameraPosX, -100.0f, 100.0f)) {
+        cameraPosition.x = static_cast<double>(cameraPosX);
+    }
+    if (ImGui::SliderFloat("Camera Y", &cameraPosY, -100.0f, 100.0f)) {
+        cameraPosition.y = static_cast<double>(cameraPosY);
+    }
+    if (ImGui::SliderFloat("Camera Z", &cameraPosZ, -100.0f, 100.0f)) {
+        cameraPosition.z = static_cast<double>(cameraPosZ);
+    }
     ImGui::End();
 
     // Triangle visibility control
@@ -179,7 +238,7 @@ bool Renderer::shouldClose() const {
     return glfwWindowShouldClose(window);
 }
 
-void Renderer::mainLoop() {
+void Renderer::mainLoop(Simulation& sim) {
     while (!shouldClose()) {
         // Poll for and process events
         glfwPollEvents();
@@ -191,7 +250,7 @@ void Renderer::mainLoop() {
         draw();
 
         // Render ImGui
-        renderImGui();
+        renderImGui(sim);
 
         // Swap buffers to display the rendered image
         glfwSwapBuffers(window);
